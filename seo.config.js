@@ -1,7 +1,7 @@
 import { profile } from './src/data.js'
 
 export const seo = {
-  siteUrl: 'https://prakash-palsaniya.vercel.app/',
+  siteUrl: 'https://prakashpalsaniya.vercel.app/',
   title: 'Prakash Palsaniya | Backend & AI Engineer',
   description: 'Prakash Palsaniya is a backend & AI engineer and IT student at NIT Srinagar, building agentic RAG applications, microservices, and scalable APIs.',
   googleVerification: '02HoJCx-Q0pMH9C6RxnTbTzmVzT9jAllwt0SCGtjRV0',
@@ -10,7 +10,7 @@ export const seo = {
 export function normalizeSiteUrl(value) {
   const url = new URL(value)
   if (url.protocol !== 'https:' || url.pathname !== '/' || url.search || url.hash || url.username || url.password) {
-    throw new Error('VITE_SITE_URL must be a public HTTPS homepage URL, such as https://prakash-palsaniya.vercel.app/.')
+    throw new Error('VITE_SITE_URL must be a public HTTPS homepage URL, such as https://prakashpalsaniya.vercel.app/.')
   }
   return `${url.origin}/`
 }

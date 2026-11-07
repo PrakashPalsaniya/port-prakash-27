@@ -2,6 +2,8 @@
 
 My personal portfolio with projects, skills, education, and contact details.
 
+[prakashpalsaniya.vercel.app](https://prakashpalsaniya.vercel.app/)
+
 Built with React, Vite, and Three.js. Includes responsive layouts, light and dark themes, project details, and a downloadable resume.
 
 ## Run locally
@@ -22,4 +24,4 @@ npm run preview
 
 On Vercel, use `npm run build` as the build command and `dist` as the output directory.
 
-Personal information and projects are in `src/data.js`. SEO settings are in `seo.config.js`. Set `VITE_SITE_URL` to your live domain if it changes.
+Personal information and projects are in `src/data.js`. SEO settings are in `seo.config.js`. The production domain is `https://prakashpalsaniya.vercel.app/`; set `VITE_SITE_URL` to the same URL in Vercel if you use that environment variable.
