@@ -13,8 +13,6 @@ function Icon({ name = 'arrow', size = 20, ...props }) {
     database: <><ellipse cx="12" cy="5" rx="8" ry="3" /><path d="M4 5v14c0 4 16 4 16 0V5M4 12c0 4 16 4 16 0" /></>,
     cloud: <><path d="M7 18a5 5 0 1 1 0-10 6 6 0 0 1 11-1 5.5 5.5 0 0 1 0 11H7Z" /></>,
     download: <><path d="M12 3v12m-5-5 5 5 5-5M4 16v5h16v-5" /></>,
-    sun: <><circle cx="12" cy="12" r="4" /><path d="M12 2v2m0 16v2M2 12h2m16 0h2M5 5l1 1m12 12 1 1M5 19l1-1M18 6l1-1" /></>,
-    moon: <path d="M20.5 13A9 9 0 0 1 11 3.5 9 9 0 1 0 20.5 13Z" />,
     close: <path d="m6 6 12 12M6 18 18 6" />,
     menu: <path d="M4 7h16M4 12h16M4 17h16" />,
     copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M15 8V4H4v11h4" /></>,
@@ -135,22 +133,13 @@ export default function App({ initialYear = new Date().getFullYear() }) {
   const [filter, setFilter] = useState('all')
   const [selectedProject, setSelectedProject] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
-  const [theme, setTheme] = useState('light')
-  const [themeLoaded, setThemeLoaded] = useState(false)
   const [year, setYear] = useState(initialYear)
   const progressRef = useRef(null)
   const headerRef = useRef(null)
   const menuToggleRef = useRef(null)
   useEffect(() => {
-    try { setTheme(localStorage.getItem('studio-theme') === 'dark' ? 'dark' : 'light') } catch { /* Keep the default theme if storage is unavailable. */ }
-    setThemeLoaded(true)
     setYear(new Date().getFullYear())
   }, [])
-  useEffect(() => {
-    document.documentElement.dataset.theme = theme
-    document.querySelector('meta[name="theme-color"]')?.setAttribute('content', theme === 'dark' ? '#101827' : '#f4f7fb')
-    if (themeLoaded) try { localStorage.setItem('studio-theme', theme) } catch { /* Theme still works without storage. */ }
-  }, [theme, themeLoaded])
   useEffect(() => {
     let frame = null
     const update = () => { frame = null; const total = document.documentElement.scrollHeight - innerHeight; if (progressRef.current) progressRef.current.style.transform = `scaleX(${total > 0 ? scrollY / total : 0})` }
@@ -185,7 +174,7 @@ export default function App({ initialYear = new Date().getFullYear() }) {
         <span>Prakash<br />Palsaniya<span className="brand-period">.</span></span>
       </a>
       <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation">{[['work', 'Work'], ['expertise', 'Expertise'], ['about', 'About']].map(([id, label]) => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{label}</a>)}<a className="nav-contact" href="#contact" onClick={() => setMenuOpen(false)}>Let's talk <Icon size={16} /></a></nav>
-      <div className="header-controls"><button className="theme-toggle" onClick={() => setTheme(theme === 'light' ? 'dark' : 'light')} aria-label={`Switch to ${theme === 'light' ? 'dark' : 'light'} theme`}><Icon name={theme === 'light' ? 'moon' : 'sun'} size={18} /></button><button ref={menuToggleRef} className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}><Icon name={menuOpen ? 'close' : 'menu'} /></button></div>
+      <button ref={menuToggleRef} className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}><Icon name={menuOpen ? 'close' : 'menu'} /></button>
     </header>
     <main id="main"><section id="top" className="hero section-wrap" aria-labelledby="hero-title"><div className="hero-topline"><p className="eyebrow"><span className="eyebrow-code-mark" aria-hidden="true"><Icon name="code" size={22} /></span> ENGINEERING WITH INTENTION</p><span className="hero-location">SRINAGAR, INDIA <span className="location-divider">/</span> <LocalTime /></span></div><div className="hero-grid"><div className="hero-copy"><div className="availability"><i className="status-dot" /> OPEN TO SDE & BACKEND INTERNSHIPS</div><h1 id="hero-title"><span className="hero-name">{profile.name}</span>Built to work.<br />Made to<br /><em>matter.</em><span className="hero-code-mark" aria-hidden="true"><Icon name="code" size={54} /></span></h1><p className="hero-description">I'm Prakash — a backend & AI engineer.<br /> I turn complex problems into reliable systems<br className="desktop-break" /> and AI that makes itself useful.</p><div className="hero-actions"><a className="button button-primary" href="#work">Explore my work <Icon name="arrow" size={18} /></a><a className="resume-link" href={profile.resume} download>Get my Resume <Icon name="download" size={16} /></a></div></div><div className="hero-art"><SystemVisual /><div className="hero-art-note"><span className="art-note-copy">Less noise. More purpose.</span><span className="art-note-line" /><span>BACKEND × AI × SYSTEMS</span></div></div></div><div className="hero-bottom"><a href="#about" className="hero-person"><img src={profile.avatar} alt={profile.fullName} width="44" height="44" /><div><strong>Curious mind. Builder at heart.</strong><span>IT @ NIT Srinagar · Class of 2027</span></div></a><div className="hero-facts"><div><strong>04</strong><span>PROJECTS SHIPPED</span></div><div><strong>500+</strong><span>DSA PROBLEMS SOLVED</span></div><div><strong>8.4</strong><span>CGPA</span></div></div><a className="scroll-cue" href="#work" aria-label="Scroll to selected work"><Icon name="down" size={18} /></a></div></section>
       <section id="work" className="work-section section-wrap" aria-labelledby="work-title"><SectionHeading number="01" label="SELECTED WORK" title={<span id="work-title">Ideas into <em>impact.</em></span>}><p>Four different problems.<br />One drive to build things that work.</p></SectionHeading><div className="work-toolbar"><div className="project-filters" role="group" aria-label="Filter projects">{[['all', 'All projects', '04'], ['ai', 'AI & intelligence', '02'], ['systems', 'Backend & systems', '02']].map(([id, label, count]) => <button key={id} className={filter === id ? 'active' : ''} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<span>{count}</span></button>)}</div><span className="work-index" aria-live="polite">{String(visibleProjects.length).padStart(2, '0')} PROJECTS / 2025</span></div><div className="project-list">{visibleProjects.map(project => <ProjectCard key={project.id} project={project} index={projects.indexOf(project)} onOpen={setSelectedProject} />)}</div><ExternalLink className="all-code-link" href={profile.github}>More code, experiments, and late-night commits on GitHub <Icon size={18} /></ExternalLink></section>
