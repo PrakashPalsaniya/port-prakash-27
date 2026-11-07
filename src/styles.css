@@ -3824,6 +3824,29 @@ em {
   }
 }
 
+/* Keep decorative painting out of the phone's initial render. */
+@media (max-width:850px),(pointer:coarse) {
+  .reactor-image,.wire-flow {
+    animation: none;
+  }
+  .site-header {
+    backdrop-filter: none;
+    background: var(--paper);
+  }
+}
+
+@supports (content-visibility:auto) {
+  .project-preview,.portrait-image {
+    content-visibility: auto;
+    contain-intrinsic-size: auto 400px;
+  }
+  @media (max-width:650px) {
+    .project-preview,.portrait-image {
+      contain-intrinsic-size: auto 320px;
+    }
+  }
+}
+
 @media (prefers-reduced-motion:reduce) {
   html {
     scroll-behavior: auto;
