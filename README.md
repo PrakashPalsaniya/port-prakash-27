@@ -4,7 +4,7 @@ My personal portfolio with projects, skills, education, and contact details.
 
 [prakash-palsaniya.vercel.app](https://prakash-palsaniya.vercel.app/)
 
-Built with React, Vite, and Three.js. Includes responsive layouts, light and dark themes, project details, and a downloadable resume.
+Built with React and Vite. Includes responsive layouts, light and dark themes, an animated arc reactor, project details, and a downloadable resume.
 
 ## Run locally
 

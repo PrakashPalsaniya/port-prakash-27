@@ -29,29 +29,7 @@ function ExternalLink({ href, children, className = '', ...props }) {
 }
 
 function ArcReactor() {
-  const canvas = useRef(null)
-  const [ready, setReady] = useState(false)
-  useEffect(() => {
-    let cancelled = false
-    let reactor
-    const element = canvas.current
-    const contextLost = () => setReady(false)
-    element.addEventListener('webglcontextlost', contextLost)
-    import('./graphics/reactor.js').then(({ createReactor }) => {
-      if (cancelled) return
-      reactor = createReactor(canvas.current)
-      setReady(true)
-    }).catch(() => { /* The matching static render stays visible if WebGL is unavailable. */ })
-    return () => { cancelled = true; element.removeEventListener('webglcontextlost', contextLost); reactor?.dispose() }
-  }, [])
-  return <g>
-    <image className="reactor-fallback" href="/images/arc-reactor-cyan.webp" x="137" y="130" width="206" height="206" visibility={ready ? 'hidden' : 'visible'} />
-    <foreignObject x="137" y="130" width="206" height="206">
-      <div className="reactor-stage" data-renderer={ready ? '3d' : 'fallback'}>
-        <canvas ref={canvas} className="reactor-canvas" aria-hidden="true" style={{ opacity: ready ? 1 : 0 }} />
-      </div>
-    </foreignObject>
-  </g>
+  return <image className="reactor-image" href="/images/arc-reactor-cyan.webp" x="137" y="130" width="206" height="206" />
 }
 
 function SystemVisual() {

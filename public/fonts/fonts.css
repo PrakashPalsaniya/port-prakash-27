@@ -3,54 +3,54 @@
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/ibm-plex-mono-400-normal.ttf) format('truetype');
+  src: url(/fonts/ibm-plex-mono-400-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Public Sans';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/public-sans-400-normal.ttf) format('truetype');
+  src: url(/fonts/public-sans-400-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Public Sans';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(/fonts/public-sans-500-normal.ttf) format('truetype');
+  src: url(/fonts/public-sans-500-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Public Sans';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(/fonts/public-sans-600-normal.ttf) format('truetype');
+  src: url(/fonts/public-sans-600-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Sora';
   font-style: normal;
   font-weight: 400;
   font-display: swap;
-  src: url(/fonts/sora-400-normal.ttf) format('truetype');
+  src: url(/fonts/sora-400-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Sora';
   font-style: normal;
   font-weight: 500;
   font-display: swap;
-  src: url(/fonts/sora-500-normal.ttf) format('truetype');
+  src: url(/fonts/sora-500-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Sora';
   font-style: normal;
   font-weight: 600;
   font-display: swap;
-  src: url(/fonts/sora-600-normal.ttf) format('truetype');
+  src: url(/fonts/sora-600-normal.woff2) format('woff2');
 }
 @font-face {
   font-family: 'Sora';
   font-style: normal;
   font-weight: 700;
   font-display: swap;
-  src: url(/fonts/sora-700-normal.ttf) format('truetype');
+  src: url(/fonts/sora-700-normal.woff2) format('woff2');
 }
