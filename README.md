@@ -37,3 +37,12 @@ An empty value disables tracking. After deployment, visit the live site and chec
 the matching project in the [Clarity dashboard](https://clarity.microsoft.com/).
 Dashboard data can take time to appear, and browser tracking blockers can prevent
 a visit from being recorded.
+
+## Vercel Web Analytics
+
+Production builds initialize Vercel Web Analytics with `@vercel/analytics`.
+Local `npm run dev` visits are excluded from tracking.
+
+Enable Web Analytics in the Vercel project's Analytics tab and deploy this code.
+After visiting the deployed site, view traffic in that project's Analytics tab.
+No project ID or environment variable is required.
