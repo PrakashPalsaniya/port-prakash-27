@@ -4,6 +4,7 @@ import { inject } from '@vercel/analytics'
 import App from './App.jsx'
 import { initClarity } from './analytics.js'
 import './styles.css'
+import './experience.css'
 
 initClarity()
 if (import.meta.env.PROD) inject({ mode: 'production' })

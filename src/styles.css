@@ -406,6 +406,64 @@ svg {
   color: #eef4ff;
   border: 1px solid #2c4265;
   box-shadow: 0 18px 48px #1c3b650b;
+  perspective: 1000px;
+}
+
+.system-scene {
+  position: absolute;
+  inset: 0;
+  transform-style: preserve-3d;
+}
+
+.system-pointer-light {
+  position: absolute;
+  width: 64%;
+  aspect-ratio: 1;
+  left: 18%;
+  top: 17%;
+  background: radial-gradient(circle,#bdfaff2b 0,#36d9ef16 35%,transparent 70%);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s;
+}
+
+/* Each SVG is its own depth plane; the mechanical face floats above its field. */
+@media (hover:hover) and (pointer:fine) and (prefers-reduced-motion:no-preference) {
+  .system-scene {
+    transform: rotateX(calc(var(--pointer-y,0) * -8deg)) rotateY(calc(var(--pointer-x,0) * 10deg));
+  }
+  .system-scene .system-grid {
+    inset: -18px;
+    translate: calc(var(--pointer-x,0) * -6px) calc(var(--pointer-y,0) * -6px) -12px;
+  }
+  .system-circuits {
+    translate: calc(var(--pointer-x,0) * -3px) calc(var(--pointer-y,0) * -3px) 0;
+  }
+  .system-reactor-field {
+    translate: calc(var(--pointer-x,0) * -4px) calc(var(--pointer-y,0) * -4px) 14px;
+  }
+  .system-reactor-body,.system-reactor-core {
+    transform: rotateX(calc(var(--pointer-y,0) * -4deg)) rotateY(calc(var(--pointer-x,0) * 5deg));
+  }
+  .system-reactor-body {
+    translate: calc(var(--pointer-x,0) * 10px) calc(var(--pointer-y,0) * 10px) 56px;
+    filter: drop-shadow(0 10px 9px #03101c70);
+  }
+  .system-reactor-core {
+    translate: calc(var(--pointer-x,0) * 10px) calc(var(--pointer-y,0) * 10px) 64px;
+  }
+  .system-node {
+    translate: calc(var(--pointer-x,0) * 4px) calc(var(--pointer-y,0) * 4px) 36px;
+  }
+  .system-top,.system-bottom,.core-caption {
+    translate: 0 0 20px;
+  }
+  .system-pointer-light {
+    translate: calc(var(--pointer-x,0) * 100px) calc(var(--pointer-y,0) * 80px) 22px;
+  }
+  .system-visual[data-pointer="active"] .system-pointer-light {
+    opacity: 1;
+  }
 }
 
 .system-top {
@@ -446,6 +504,7 @@ svg {
   height: 100%;
   position: absolute;
   inset: 0;
+  pointer-events: none;
 }
 
 .orbit {
@@ -468,32 +527,151 @@ svg {
 
 .wire-flow {
   fill: none;
-  stroke: #a0c9ff;
+  stroke: #81efff;
+  stroke-width: 2;
+  stroke-linecap: round;
+  stroke-dasharray: 8 92;
+  animation: wire-flow 4.4s linear infinite;
+  animation-delay: var(--flow-delay,0s);
+}
+
+.arc-reactor {
+  pointer-events: none;
+}
+
+.reactor-housing {
+  fill: #0c293d;
+  stroke: #194757;
+  stroke-width: 8;
+}
+
+.reactor-ring,.reactor-orbit,.reactor-turbine,.reactor-ripple {
+  /* Local SVG coordinates keep every ring centered at every viewport size. */
+  transform-box: view-box;
+  transform-origin: 0 0;
+}
+
+.reactor-ring,.reactor-orbit-trail,.reactor-turbine,.reactor-ripple {
+  fill: none;
+  stroke: #6eeaff;
+}
+
+.reactor-ring {
+  stroke-linecap: round;
+  animation: reactor-spin 18s linear infinite;
+}
+
+.reactor-ring-outer {
+  stroke-width: 2;
+  opacity: .72;
+}
+
+.reactor-ring-inner {
+  stroke: #c2faff;
   stroke-width: 1.5;
-  stroke-dasharray: 5 190;
-  animation: wire-flow 9s linear infinite;
+  opacity: .8;
+  animation-duration: 12s;
+  animation-direction: reverse;
+}
+
+.reactor-orbit {
+  animation: reactor-spin 28s linear infinite;
+}
+
+.reactor-orbit-trail {
+  stroke-width: 1.5;
+  opacity: .45;
+}
+
+.reactor-halo {
+  opacity: .55;
+  animation: reactor-glow 3.6s ease-in-out infinite;
+}
+
+.reactor-ripple {
+  stroke-width: 1;
+  opacity: 0;
+  animation: reactor-ripple 4.8s ease-out infinite;
+}
+
+.reactor-ripple-delayed {
+  animation-delay: -2.4s;
+}
+
+.reactor-core-glow {
+  opacity: .45;
+  animation: reactor-glow 3.6s ease-in-out infinite;
+}
+
+.reactor-turbine {
+  stroke: #e1ffff;
+  stroke-width: 1.3;
+  opacity: .55;
+  animation: reactor-spin 24s linear infinite reverse;
+}
+
+.system-visual[data-motion="paused"] .system-wires * {
+  animation-play-state: paused;
+}
+
+@media (hover:hover) and (pointer:fine) {
+  .system-visual:hover .reactor-ring-outer {
+    stroke: #ccfaff;
+  }
+  .system-visual:hover .reactor-ring-inner {
+    stroke-width: 2.5;
+  }
 }
 
 .reactor-image {
   transform-box: fill-box;
   transform-origin: center;
-  animation: reactor-breathe 6s ease-in-out infinite;
+  animation: reactor-breathe 3.6s ease-in-out infinite;
   pointer-events: none;
 }
 
 @keyframes reactor-breathe {
   0%,100% {
-    opacity: .96;
+    opacity: .9;
     transform: scale(1);
   }
   50% {
     opacity: 1;
-    transform: scale(1.008);
+    transform: scale(1.025);
+  }
+}
+
+@keyframes reactor-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+@keyframes reactor-glow {
+  0%,100% {
+    opacity: .35;
+  }
+  50% {
+    opacity: .85;
+  }
+}
+
+@keyframes reactor-ripple {
+  0% {
+    opacity: 0;
+    transform: scale(.96);
+  }
+  15% {
+    opacity: .55;
+  }
+  85%,100% {
+    opacity: 0;
+    transform: scale(1.52);
   }
 }
 
 .satellite {
-  fill: #a0c9ff;
+  fill: #c2faff;
 }
 
 .system-node {
@@ -1773,7 +1951,7 @@ svg {
 
 @keyframes wire-flow {
   to {
-    stroke-dashoffset: -390;
+    stroke-dashoffset: -100;
   }
 }
 
@@ -3776,9 +3954,12 @@ em {
   }
 }
 
-/* Keep decorative painting out of the phone's initial render. */
+/* Keep phones animated with fewer decorative layers to paint. */
 @media (max-width:850px),(pointer:coarse) {
-  .reactor-image,.wire-flow {
+  .reactor-turbine,.reactor-ripple-delayed {
+    display: none;
+  }
+  .reactor-image {
     animation: none;
   }
   .site-header {

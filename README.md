@@ -4,7 +4,7 @@ My personal portfolio with projects, skills, education, and contact details.
 
 [prakash-palsaniya.vercel.app](https://prakash-palsaniya.vercel.app/)
 
-Built with React and Vite. Includes responsive layouts, a light theme, an animated arc reactor, project details, and a downloadable resume.
+Built with React and Vite. Includes a cinematic arc-reactor hero, interactive energy bursts, scroll reveals, project details, and a downloadable resume. A motion switch pauses decorative animations, and device reduced-motion preferences are respected automatically.
 
 ## Run locally
 

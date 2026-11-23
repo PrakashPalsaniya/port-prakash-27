@@ -1,6 +1,7 @@
-import { useEffect, useLayoutEffect, useRef, useState } from 'react'
+import { useEffect, useId, useLayoutEffect, useRef, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { profile, projects, skillGroups, timeline, languages, stats } from './data'
+import { AnimatedNumber, MagneticLink, MotionProvider, MotionRegion, MotionToggle, Reveal, TechRibbon, useMotion, usePointerLight } from './motion'
 
 function Icon({ name = 'arrow', size = 20, ...props }) {
   const paths = {
@@ -18,6 +19,7 @@ function Icon({ name = 'arrow', size = 20, ...props }) {
     copy: <><rect x="8" y="8" width="12" height="12" rx="2" /><path d="M15 8V4H4v11h4" /></>,
     check: <path d="m5 12 4 4L19 6" />,
     pin: <><path d="M19 10c0 5-7 11-7 11S5 15 5 10a7 7 0 1 1 14 0Z" /><circle cx="12" cy="10" r="2" /></>,
+    bolt: <path d="m13 2-9 12h7l-1 8 10-13h-7l1-7Z" />,
   }
   return <svg width={size} height={size} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true" {...props}>{paths[name] || paths.arrow}</svg>
 }
@@ -26,33 +28,161 @@ function ExternalLink({ href, children, className = '', ...props }) {
   return <a href={href} target="_blank" rel="noreferrer" className={className} {...props}>{children}</a>
 }
 
-function ArcReactor() {
-  return <image className="reactor-image" href="/images/arc-reactor-cyan.webp" x="137" y="130" width="206" height="206" />
+function ArcReactor({ layer }) {
+  const glowId = `reactor-glow-${useId().replace(/:/g, '')}`
+  return <g className="arc-reactor">
+    {layer !== 'body' && <defs>
+      <radialGradient id={glowId}>
+        <stop offset="0" stopColor="#efffff" stopOpacity=".9" />
+        <stop offset=".3" stopColor="#81f4ff" stopOpacity=".5" />
+        <stop offset=".65" stopColor="#23d8f5" stopOpacity=".2" />
+        <stop offset="1" stopColor="#23d8f5" stopOpacity="0" />
+      </radialGradient>
+    </defs>}
+    {layer === 'field' && <g transform="translate(240 233)">
+      <circle className="reactor-halo" r="143" fill={`url(#${glowId})`} />
+      <circle className="reactor-ripple" r="99" />
+      <circle className="reactor-ripple reactor-ripple-delayed" r="99" />
+      <circle className="reactor-burst" r="65" />
+      <circle className="reactor-burst reactor-burst-echo" r="65" />
+      <g className="reactor-ring reactor-ring-outer">
+        <circle r="123" pathLength="360" strokeDasharray="64 24 8 24" />
+      </g>
+      <g className="reactor-ring reactor-ring-inner">
+        <circle r="112" pathLength="360" strokeDasharray="34 56 34 56" />
+      </g>
+      <g className="reactor-orbit">
+        <circle className="reactor-orbit-trail" r="153" pathLength="360" strokeDasharray="18 162" />
+        <circle className="satellite" cx="-153" r="3" />
+        <circle className="satellite" cx="153" r="3" />
+      </g>
+      <circle className="reactor-housing" cy="4" r="84" />
+    </g>}
+    {layer === 'body' && <image className="reactor-image" href="/images/arc-reactor-cyan.webp" x="137" y="130" width="206" height="206" />}
+    {layer === 'core' && <g transform="translate(240 233)">
+      <circle className="reactor-core-glow" r="33" fill={`url(#${glowId})`} />
+      <g className="reactor-turbine">
+        <circle r="37" pathLength="360" strokeDasharray="2 13" />
+      </g>
+    </g>}
+  </g>
 }
 
 function SystemVisual() {
-  return <div className="system-visual" role="img" aria-label="An Iron Man-inspired arc reactor with polished silver supports, glowing cyan light rings, and a white core connected to reliable APIs, useful AI, and data systems.">
-    <div className="system-top"><span><i className="status-dot" /> SYSTEM THINKING</span><span>FIG. 001</span></div>
-    <div className="system-grid" />
-    <svg className="system-wires" viewBox="0 0 480 470" aria-hidden="true">
-      <circle cx="240" cy="233" r="153" className="orbit" />
-      <circle cx="240" cy="233" r="114" className="orbit orbit-inner" />
-      <path d="M100 115H158L208 200M350 108v62l-81 45M122 345h50l39-77M349 343v-59l-79-30" className="wire" />
-      <path d="M100 115H158L208 200M350 108v62l-81 45M122 345h50l39-77M349 343v-59l-79-30" className="wire-flow" />
-      <ArcReactor />
-      <circle cx="87" cy="233" r="4" className="satellite" />
-      <circle cx="393" cy="233" r="4" className="satellite" />
-    </svg>
-    <div className="system-node node-api"><div><Icon name="code" /><span>01 / BACKEND</span></div><strong>Reliable APIs</strong><small>Built for the real world</small></div>
-    <div className="system-node node-ai"><div><Icon name="cpu" /><span>02 / INTELLIGENCE</span></div><strong>Useful AI</strong><small>Context → clarity</small></div>
-    <div className="system-node node-data"><div><Icon name="database" /><span>03 / DATA</span></div><strong>Connected systems</strong><small>Every piece, in sync</small></div>
-    <span className="core-caption">THE ENGINEER'S MINDSET</span>
-    <div className="system-bottom"><span className="system-coordinates">34.0837° N / 74.7973° E</span><span>Ideas. Connected.<Icon name="cpu" size={16} /></span></div>
+  const { enabled } = useMotion()
+  const [boosted, setBoosted] = useState(false)
+  const boostTimer = useRef(null)
+  const visualRef = useRef(null)
+  useEffect(() => {
+    if (!enabled) setBoosted(false)
+    return () => clearTimeout(boostTimer.current)
+  }, [enabled])
+  const energize = () => {
+    if (!enabled || boosted) return
+    setBoosted(true)
+    boostTimer.current = setTimeout(() => setBoosted(false), 1900)
+  }
+  useEffect(() => {
+    const visual = visualRef.current
+    const canTrackPointer = matchMedia('(hover: hover) and (pointer: fine) and (prefers-reduced-motion: no-preference)')
+    let inView = true
+    let frame = null
+    const target = { x: 0, y: 0 }
+    const current = { x: 0, y: 0 }
+    const writePosition = () => {
+      visual.style.setProperty('--pointer-x', current.x.toFixed(4))
+      visual.style.setProperty('--pointer-y', current.y.toFixed(4))
+    }
+    const animatePointer = () => {
+      current.x += (target.x - current.x) * .12
+      current.y += (target.y - current.y) * .12
+      const settled = Math.abs(target.x - current.x) < .001 && Math.abs(target.y - current.y) < .001
+      if (settled) { current.x = target.x; current.y = target.y }
+      writePosition()
+      frame = settled ? null : requestAnimationFrame(animatePointer)
+    }
+    const schedulePointer = () => { if (frame === null) frame = requestAnimationFrame(animatePointer) }
+    const resetPointer = (immediate = false) => {
+      target.x = 0
+      target.y = 0
+      visual.dataset.pointer = 'idle'
+      if (immediate) {
+        if (frame !== null) cancelAnimationFrame(frame)
+        frame = null
+        current.x = 0
+        current.y = 0
+        writePosition()
+      } else schedulePointer()
+    }
+    const followPointer = event => {
+      if (!enabled || event.pointerType !== 'mouse' || !canTrackPointer.matches || !inView || document.hidden) return
+      // Measure the fixed panel, so the rotating scene cannot affect cursor input.
+      const bounds = visual.getBoundingClientRect()
+      target.x = Math.max(-1, Math.min(1, (event.clientX - bounds.left) / bounds.width * 2 - 1))
+      target.y = Math.max(-1, Math.min(1, (event.clientY - bounds.top) / bounds.height * 2 - 1))
+      visual.dataset.pointer = 'active'
+      schedulePointer()
+    }
+    const releasePointer = () => resetPointer(!enabled)
+    const updateMotion = () => {
+      const running = enabled && inView && !document.hidden
+      visual.dataset.motion = running ? 'running' : 'paused'
+      if (!running || !canTrackPointer.matches) resetPointer(true)
+    }
+    const observer = new IntersectionObserver(([entry]) => { inView = entry.isIntersecting; updateMotion() })
+    observer.observe(visual)
+    visual.addEventListener('pointermove', followPointer, { passive: true })
+    visual.addEventListener('pointerleave', releasePointer)
+    visual.addEventListener('pointercancel', releasePointer)
+    window.addEventListener('blur', releasePointer)
+    canTrackPointer.addEventListener('change', updateMotion)
+    document.addEventListener('visibilitychange', updateMotion)
+    updateMotion()
+    return () => {
+      observer.disconnect()
+      if (frame !== null) cancelAnimationFrame(frame)
+      visual.removeEventListener('pointermove', followPointer)
+      visual.removeEventListener('pointerleave', releasePointer)
+      visual.removeEventListener('pointercancel', releasePointer)
+      window.removeEventListener('blur', releasePointer)
+      canTrackPointer.removeEventListener('change', updateMotion)
+      document.removeEventListener('visibilitychange', updateMotion)
+    }
+  }, [enabled])
+  return <div className="reactor-experience" data-boosted={boosted}>
+    <div ref={visualRef} className="system-visual" role="img" aria-label="An interactive arc reactor with rotating cyan energy rings, a luminous core, and connected APIs, AI, and data systems. Move your pointer to explore its depth.">
+    <div className="system-scene">
+      <div className="system-top"><span><i className="status-dot" /> THE ENGINEERING CORE</span><span>FIG. 001</span></div>
+      <div className="system-grid" />
+      <div className="system-pointer-light" aria-hidden="true" />
+      <div className="reactor-scan" aria-hidden="true" />
+      <div className="reactor-starfield" aria-hidden="true">{Array.from({ length: 18 }, (_, index) => <i key={index} style={{ left: ((index * 37 + 11) % 100) + '%', top: ((index * 53 + 7) % 100) + '%', '--star-delay': (index * -.63) + 's' }} />)}</div>
+      <svg className="system-wires system-circuits" viewBox="0 0 480 470" aria-hidden="true">
+        <circle cx="240" cy="233" r="153" className="orbit" />
+        <circle cx="240" cy="233" r="114" className="orbit orbit-inner" />
+        <path d="M100 115H158L208 200M350 108v62l-81 45M122 345h50l39-77M349 343v-59l-79-30" className="wire" />
+        {['M208 200 158 115H100', 'M269 215 350 170V108', 'M211 268 172 345H122', 'M270 254 349 284V343'].map((path, index) => <path key={path} d={path} className="wire-flow" pathLength="100" style={{ '--flow-delay': `${index * -1.1}s` }} />)}
+      </svg>
+      {['field', 'body', 'core'].map(layer => <svg key={layer} className={`system-wires system-reactor-${layer}`} viewBox="0 0 480 470" aria-hidden="true"><ArcReactor layer={layer} /></svg>)}
+      <div className="system-node node-api"><div><Icon name="code" /><span>01 / BACKEND</span></div><strong>Reliable APIs</strong><small>Built for the real world</small></div>
+      <div className="system-node node-ai"><div><Icon name="cpu" /><span>02 / INTELLIGENCE</span></div><strong>Useful AI</strong><small>Context → clarity</small></div>
+      <div className="system-node node-data"><div><Icon name="database" /><span>03 / DATA</span></div><strong>Connected systems</strong><small>Every piece, in sync</small></div>
+      <span className="core-caption">THE ENGINEER'S MINDSET</span>
+      <div className="system-bottom"><span className="system-coordinates">34.0837° N / 74.7973° E</span><span>Ideas. Connected.<Icon name="cpu" size={16} /></span></div>
+    </div>
+    </div>
+    <div className="reactor-controls">
+      <span className="reactor-hint"><span aria-hidden="true">↗</span> A little curiosity. A lot of engineering.</span>
+      <button type="button" className="reactor-boost" onClick={energize} disabled={!enabled || boosted}>
+        <Icon name="bolt" size={14} /><span>{boosted ? 'Core energized' : 'Energize the core'}</span>
+      </button>
+      <span className="sr-only" role="status">{boosted ? 'Arc reactor energy burst activated.' : ''}</span>
+    </div>
   </div>
 }
 
 function SectionHeading({ number, label, title, children }) {
-  return <div className="section-heading"><div><p className="eyebrow"><span>{number}</span> {label}</p><h2>{title}</h2></div>{children}</div>
+  return <Reveal className="section-heading"><div><p className="eyebrow"><span>{number}</span> {label}</p><h2>{title}</h2></div>{children}</Reveal>
 }
 
 const projectNotes = {
@@ -64,18 +194,23 @@ const projectNotes = {
 
 function ProjectCard({ project, index, onOpen }) {
   const note = projectNotes[project.id]
-  return <article className={`project-row project-${project.id}`}>
+  const surfaceRef = useRef(null)
+  usePointerLight(surfaceRef)
+  return <Reveal as="article" className={`project-row project-${project.id}`}>
+    <div ref={surfaceRef} className="project-visual">
     <button className="project-preview" onClick={() => onOpen(project)} aria-label={`Read ${project.name} case study`}>
       <div className="preview-heading"><span>{note.label}</span><Icon name={note.icon} size={22} /></div>
       <p className="preview-title">{note.title}</p>
       <div className="browser-frame"><div className="browser-toolbar"><div><i /><i /><i /></div><span>{new URL(project.links.demo).hostname}</span><Icon name="arrow" size={12} /></div><img src={project.preview.src} alt={project.preview.alt} width="1280" height="720" loading="lazy" decoding="async" /></div>
       <div className="preview-footer"><span>{project.category}</span><span>EXPLORE PROJECT <Icon name="arrow" size={15} /></span></div>
     </button>
+    </div>
     <div className="project-info"><div className="project-meta"><span>PROJECT / 0{index + 1}</span><span>{project.year}</span></div><h3>{project.name}<span className="project-title-dot">.</span></h3><p className="project-tagline">{project.tagline}</p><p className="project-summary">{project.story.contribution}</p><div className="tags">{note.tags.map(tag => <span key={tag}>{tag}</span>)}</div><div className="project-actions"><button className="text-link" onClick={() => onOpen(project)}>Behind the build <Icon name="right" /></button><ExternalLink className="icon-link" href={project.links.demo} aria-label={`Open ${project.name} live demo`}><Icon /></ExternalLink><ExternalLink className="icon-link" href={project.links.code} aria-label={`View ${project.name} source code`}><Icon name="code" /></ExternalLink></div></div>
-  </article>
+  </Reveal>
 }
 
 function ProjectDialog({ project, onClose }) {
+  const { enabled } = useMotion()
   const dialogRef = useRef(null)
   useLayoutEffect(() => {
     const dialog = dialogRef.current
@@ -91,7 +226,7 @@ function ProjectDialog({ project, onClose }) {
     const rect = event.currentTarget.getBoundingClientRect()
     if (event.clientX < rect.left || event.clientX > rect.right || event.clientY < rect.top || event.clientY > rect.bottom) onClose()
   }
-  return createPortal(<dialog ref={dialogRef} className={`case-dialog project-${project.id}`} aria-labelledby="case-title" onCancel={event => { event.preventDefault(); onClose() }} onClick={handleBackdrop}>
+  return createPortal(<dialog ref={dialogRef} className={`case-dialog project-${project.id}`} data-motion={enabled ? 'on' : 'off'} aria-labelledby="case-title" onCancel={event => { event.preventDefault(); onClose() }} onClick={handleBackdrop}>
     <div className="case-top"><span className="eyebrow">THE THINKING BEHIND THE BUILD</span><button className="icon-link" onClick={onClose} aria-label="Close project details"><Icon name="close" /></button></div>
     <div className="case-intro"><span className="eyebrow">{project.category} / {project.year}</span><h2 id="case-title">{project.name}<span>.</span></h2><p>{project.tagline}</p></div>
     <img className="case-image" src={project.preview.src} alt={project.preview.alt} width="1280" height="720" />
@@ -129,11 +264,12 @@ function Contact() {
   return <section id="contact" className="contact-section section-wrap" aria-labelledby="contact-title"><div className="contact-top"><p className="eyebrow"><span>04</span> WHAT'S NEXT</p><span className="availability"><i className="status-dot" /> OPEN TO OPPORTUNITIES</span></div><h2 id="contact-title">Good things start<br />with a <em>conversation.</em><a className="contact-big-arrow" href={`mailto:${profile.email}`} aria-label="Start a conversation by email"><Icon size={72} /></a></h2><div className="contact-bottom"><div><p>Have a role, an idea, or a good problem?</p><div className="email-row"><a href={`mailto:${profile.email}`}>{profile.email}</a><button className="icon-link" onClick={copyEmail} aria-label={copied ? 'Email copied' : 'Copy email address'}><Icon name={copied ? 'check' : 'copy'} size={18} /></button></div><p className="copy-status" role="status">{message}</p></div><div className="contact-details"><a href={`tel:${profile.phone.replace(/\s/g, '')}`}>{profile.phone}</a><span><Icon name="pin" size={15} /> {profile.location} · Open to remote</span></div></div><div className="contact-socials"><ExternalLink href={profile.github}>GitHub <Icon size={16} /></ExternalLink><ExternalLink href={profile.linkedin}>LinkedIn <Icon size={16} /></ExternalLink><a href={profile.resume} download>Resume <Icon name="download" size={16} /></a></div></section>
 }
 
-export default function App({ initialYear = new Date().getFullYear() }) {
+function Portfolio({ initialYear = new Date().getFullYear() }) {
   const [filter, setFilter] = useState('all')
   const [selectedProject, setSelectedProject] = useState(null)
   const [menuOpen, setMenuOpen] = useState(false)
   const [year, setYear] = useState(initialYear)
+  const [activeSection, setActiveSection] = useState('top')
   const progressRef = useRef(null)
   const headerRef = useRef(null)
   const menuToggleRef = useRef(null)
@@ -142,7 +278,15 @@ export default function App({ initialYear = new Date().getFullYear() }) {
   }, [])
   useEffect(() => {
     let frame = null
-    const update = () => { frame = null; const total = document.documentElement.scrollHeight - innerHeight; if (progressRef.current) progressRef.current.style.transform = `scaleX(${total > 0 ? scrollY / total : 0})` }
+    const sections = ['top', 'work', 'expertise', 'about', 'contact'].map(id => document.getElementById(id))
+    const update = () => {
+      frame = null
+      const total = document.documentElement.scrollHeight - innerHeight
+      if (progressRef.current) progressRef.current.style.transform = `scaleX(${total > 0 ? scrollY / total : 0})`
+      const marker = Math.min(innerHeight * .35, 300)
+      const current = sections.filter(section => section && section.getBoundingClientRect().top <= marker).at(-1)
+      setActiveSection(current?.id || 'top')
+    }
     const scroll = () => { if (!frame) frame = requestAnimationFrame(update) }
     update()
     window.addEventListener('scroll', scroll, { passive: true })
@@ -173,15 +317,101 @@ export default function App({ initialYear = new Date().getFullYear() }) {
         <img className="brand-avatar" src={profile.navbarAvatar} alt="" width="42" height="42" decoding="async" />
         <span>Prakash<br />Palsaniya<span className="brand-period">.</span></span>
       </a>
-      <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation">{[['work', 'Work'], ['expertise', 'Expertise'], ['about', 'About']].map(([id, label]) => <a key={id} href={`#${id}`} onClick={() => setMenuOpen(false)}>{label}</a>)}<a className="nav-contact" href="#contact" onClick={() => setMenuOpen(false)}>Let's talk <Icon size={16} /></a></nav>
+      <nav id="main-navigation" className={menuOpen ? 'nav open' : 'nav'} aria-label="Main navigation">{[['work', 'Work'], ['expertise', 'Expertise'], ['about', 'About']].map(([id, label]) => <a key={id} href={`#${id}`} aria-current={activeSection === id ? 'location' : undefined} onClick={() => setMenuOpen(false)}>{label}</a>)}<a className="nav-contact" href="#contact" aria-current={activeSection === 'contact' ? 'location' : undefined} onClick={() => setMenuOpen(false)}>Let's talk <Icon size={16} /></a></nav>
+      <MotionToggle />
       <button ref={menuToggleRef} className="menu-toggle" aria-label={menuOpen ? 'Close navigation' : 'Open navigation'} aria-expanded={menuOpen} aria-controls="main-navigation" onClick={() => setMenuOpen(!menuOpen)}><Icon name={menuOpen ? 'close' : 'menu'} /></button>
     </header>
-    <main id="main"><section id="top" className="hero section-wrap" aria-labelledby="hero-title"><div className="hero-topline"><p className="eyebrow"><span className="eyebrow-code-mark" aria-hidden="true"><Icon name="code" size={22} /></span> ENGINEERING WITH INTENTION</p><span className="hero-location">SRINAGAR, INDIA <span className="location-divider">/</span> <LocalTime /></span></div><div className="hero-grid"><div className="hero-copy"><div className="availability"><i className="status-dot" /> OPEN TO SDE & BACKEND INTERNSHIPS</div><h1 id="hero-title"><span className="hero-name">{profile.name}</span>Built to work.<br />Made to<br /><em>matter.</em><span className="hero-code-mark" aria-hidden="true"><Icon name="code" size={54} /></span></h1><p className="hero-description">I'm Prakash — a backend & AI engineer.<br /> I turn complex problems into reliable systems<br className="desktop-break" /> and AI that makes itself useful.</p><div className="hero-actions"><a className="button button-primary" href="#work">Explore my work <Icon name="arrow" size={18} /></a><a className="resume-link" href={profile.resume} download>Get my Resume <Icon name="download" size={16} /></a></div></div><div className="hero-art"><SystemVisual /><div className="hero-art-note"><span className="art-note-copy">Less noise. More purpose.</span><span className="art-note-line" /><span>BACKEND × AI × SYSTEMS</span></div></div></div><div className="hero-bottom"><a href="#about" className="hero-person"><img src={profile.avatar} alt={profile.fullName} width="44" height="44" /><div><strong>Curious mind. Builder at heart.</strong><span>IT @ NIT Srinagar · Class of 2027</span></div></a><div className="hero-facts"><div><strong>04</strong><span>PROJECTS SHIPPED</span></div><div><strong>500+</strong><span>DSA PROBLEMS SOLVED</span></div><div><strong>8.4</strong><span>CGPA</span></div></div><a className="scroll-cue" href="#work" aria-label="Scroll to selected work"><Icon name="down" size={18} /></a></div></section>
-      <section id="work" className="work-section section-wrap" aria-labelledby="work-title"><SectionHeading number="01" label="SELECTED WORK" title={<span id="work-title">Ideas into <em>impact.</em></span>}><p>Four different problems.<br />One drive to build things that work.</p></SectionHeading><div className="work-toolbar"><div className="project-filters" role="group" aria-label="Filter projects">{[['all', 'All projects', '04'], ['ai', 'AI & intelligence', '02'], ['systems', 'Backend & systems', '02']].map(([id, label, count]) => <button key={id} className={filter === id ? 'active' : ''} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<span>{count}</span></button>)}</div><span className="work-index" aria-live="polite">{String(visibleProjects.length).padStart(2, '0')} PROJECTS / 2025</span></div><div className="project-list">{visibleProjects.map(project => <ProjectCard key={project.id} project={project} index={projects.indexOf(project)} onOpen={setSelectedProject} />)}</div><ExternalLink className="all-code-link" href={profile.github}>More code, experiments, and late-night commits on GitHub <Icon size={18} /></ExternalLink></section>
-      <section id="expertise" className="expertise-section" aria-labelledby="expertise-title"><div className="section-wrap"><SectionHeading number="02" label="MY TOOLKIT" title={<span id="expertise-title">The right tools.<br /><em>The whole picture.</em></span>}><p>From the first request to the last response,<br />I care about what happens in between.</p></SectionHeading><div className="expertise-focus"><span><i className="status-dot" /> {stats[0].value}</span><span><Icon name="cpu" size={15} /> {stats[1].value}</span></div><div className="skills-grid">{skillGroups.map((group, index) => <article className="skill-group" key={group.title}><div className="skill-header"><Icon name={['cpu', 'code', 'database', 'cloud', 'layers'][index]} size={27} /><span>0{index + 1}</span></div><h3>{group.title === 'Agentic / AI' ? 'AI & intelligence' : group.title}</h3><div className="skill-items">{group.items.map(item => <span key={item}>{item}</span>)}</div></article>)}<div className="toolkit-note"><span className="toolkit-code-mark" aria-hidden="true"><Icon name="code" size={68} /></span><p>Tools change.<br />Good fundamentals<br /><em>stay with you.</em></p><span>ALWAYS LEARNING. ALWAYS BUILDING.</span></div></div></div></section>
-      <section id="about" className="about-section section-wrap" aria-labelledby="about-title"><SectionHeading number="03" label="THE HUMAN BEHIND THE CODE" title={<span id="about-title">A little more <em>Prakash.</em></span>} /><div className="about-grid"><div className="about-portrait"><div className="portrait-image"><img src={profile.avatar} alt="Prakash Chand Palsaniya" width="600" height="600" loading="lazy" /><span className="portrait-sticker">STILL<br />CURIOUS.<span aria-hidden="true">↗</span></span></div><div className="portrait-caption"><span>PRAKASH CHAND PALSANIYA</span><span>BUILDER / LEARNER</span></div></div><div className="about-copy"><p className="about-lead">I like understanding how things work.<br /><em>Then making them work better.</em></p><p>{profile.bio}</p><p className="about-tagline">{profile.tagline}</p><div className="education-card"><span className="eyebrow">CURRENTLY AT</span><h3>{profile.education.school}</h3><div><span>{profile.education.degree}</span><span>{profile.education.detail}</span></div></div><div className="language-card"><span className="eyebrow">THE LANGUAGES I THINK IN</span><div className="language-bar" aria-hidden="true">{languages.map(language => <span key={language.name} style={{ width: `${language.pct}%`, background: language.color }} />)}</div><div className="language-legend">{languages.map(language => <span key={language.name}><i style={{ background: language.color }} />{language.name} <b>{language.pct}%</b></span>)}</div></div></div></div><div className="journey"><div className="journey-label"><span className="eyebrow">THE JOURNEY SO FAR</span><Icon name="right" size={22} /></div><div className="timeline">{timeline.map(item => <article key={item.when}><span className="timeline-year">{item.when}</span><h3>{item.title}</h3><p>{item.text}</p></article>)}</div></div></section>
-      <Contact />
+    <main id="main">
+      <MotionRegion className="hero-stage">
+        <div className="hero-atmosphere" aria-hidden="true"><i /><i /></div>
+        <section id="top" className="hero section-wrap" aria-labelledby="hero-title">
+          <div className="hero-topline">
+            <p className="eyebrow"><span className="eyebrow-code-mark" aria-hidden="true"><Icon name="code" size={22} /></span> ENGINEERING WITH INTENTION</p>
+            <span className="hero-location">SRINAGAR, INDIA <span className="location-divider">/</span> <LocalTime /></span>
+          </div>
+          <div className="hero-grid">
+            <div className="hero-copy">
+              <div className="availability"><i className="status-dot" /> OPEN TO SDE & BACKEND INTERNSHIPS</div>
+              <h1 id="hero-title">
+                <span className="hero-name">{profile.name}<span aria-hidden="true"> —</span></span>
+                <span className="hero-line"><span>Built to work.</span></span>
+                <span className="hero-line"><span>Made to</span></span>
+                <span className="hero-line hero-line-accent"><span><em>matter.</em></span></span>
+              </h1>
+              <p className="hero-description">I'm Prakash — a backend & AI engineer.<br /> I turn complex problems into reliable systems<br className="desktop-break" /> and AI that makes itself useful.</p>
+              <div className="hero-actions">
+                <MagneticLink className="button button-primary" href="#work">Explore my work <Icon name="arrow" size={18} /></MagneticLink>
+                <a className="resume-link" href={profile.resume} download>Get my resume <Icon name="download" size={16} /></a>
+              </div>
+            </div>
+            <div className="hero-art"><SystemVisual /></div>
+          </div>
+          <div className="hero-bottom">
+            <a href="#about" className="hero-person"><img src={profile.avatar} alt={profile.fullName} width="44" height="44" /><div><strong>Curious mind. Builder at heart.</strong><span>IT @ NIT Srinagar · Class of 2027</span></div></a>
+            <div className="hero-facts">
+              <div><AnimatedNumber value={projects.length} pad={2} /><span>PROJECTS SHIPPED</span></div>
+              <div><AnimatedNumber value={500} suffix="+" /><span>DSA PROBLEMS SOLVED</span></div>
+              <div><AnimatedNumber value={8.4} decimals={1} /><span>CGPA</span></div>
+            </div>
+            <a className="scroll-cue" href="#work" aria-label="Scroll to selected work"><Icon name="down" size={18} /></a>
+          </div>
+        </section>
+      </MotionRegion>
+      <TechRibbon />
+      <section id="work" className="work-section section-wrap" aria-labelledby="work-title">
+        <SectionHeading number="01" label="SELECTED WORK" title={<span id="work-title">Ideas into <em>impact.</em></span>}><p>Four different problems.<br />One drive to build things that work.</p></SectionHeading>
+        <div className="work-toolbar">
+          <div className="project-filters" role="group" aria-label="Filter projects">
+            {[['all', 'All projects', '04'], ['ai', 'AI & intelligence', '02'], ['systems', 'Backend & systems', '02']].map(([id, label, count]) => <button key={id} className={filter === id ? 'active' : ''} aria-pressed={filter === id} onClick={() => setFilter(id)}>{label}<span>{count}</span></button>)}
+          </div>
+          <span className="work-index" aria-live="polite">{String(visibleProjects.length).padStart(2, '0')} PROJECTS / 2025</span>
+        </div>
+        <div className="project-list" key={filter}>{visibleProjects.map(project => <ProjectCard key={project.id} project={project} index={projects.indexOf(project)} onOpen={setSelectedProject} />)}</div>
+        <ExternalLink className="all-code-link" href={profile.github}>More code, experiments, and late-night commits on GitHub <Icon size={18} /></ExternalLink>
+      </section>
+      <section id="expertise" className="expertise-section" aria-labelledby="expertise-title">
+        <div className="section-wrap">
+          <SectionHeading number="02" label="MY TOOLKIT" title={<span id="expertise-title">The right tools.<br /><em>The whole picture.</em></span>}><p>From the first request to the last response,<br />I care about what happens in between.</p></SectionHeading>
+          <Reveal className="expertise-focus"><span><i className="status-dot" /> {stats[0].value}</span><span><Icon name="cpu" size={15} /> {stats[1].value}</span></Reveal>
+          <div className="skills-grid">
+            {skillGroups.map((group, index) => <Reveal as="article" className="skill-group" key={group.title} delay={(index % 3) * 80}>
+              <div className="skill-header"><Icon name={['cpu', 'code', 'database', 'cloud', 'layers'][index]} size={27} /><span>0{index + 1}</span></div>
+              <h3>{group.title === 'Agentic / AI' ? 'AI & intelligence' : group.title}</h3>
+              <div className="skill-items">{group.items.map(item => <span key={item}>{item}</span>)}</div>
+            </Reveal>)}
+            <Reveal className="toolkit-note" delay={160}><span className="toolkit-code-mark" aria-hidden="true"><Icon name="code" size={68} /></span><p>Tools change.<br />Good fundamentals<br /><em>stay with you.</em></p><span>ALWAYS LEARNING. ALWAYS BUILDING.</span></Reveal>
+          </div>
+        </div>
+      </section>
+      <section id="about" className="about-section section-wrap" aria-labelledby="about-title">
+        <SectionHeading number="03" label="THE HUMAN BEHIND THE CODE" title={<span id="about-title">A little more <em>Prakash.</em></span>} />
+        <div className="about-grid">
+          <Reveal className="about-portrait">
+            <div className="portrait-image"><img src={profile.avatar} alt="Prakash Chand Palsaniya" width="600" height="600" loading="lazy" /><span className="portrait-sticker">STILL<br />CURIOUS.<span aria-hidden="true">↗</span></span></div>
+            <div className="portrait-caption"><span>PRAKASH CHAND PALSANIYA</span><span>BUILDER / LEARNER</span></div>
+          </Reveal>
+          <Reveal className="about-copy" delay={120}>
+            <p className="about-lead">I like understanding how things work.<br /><em>Then making them work better.</em></p>
+            <p>{profile.bio}</p><p className="about-tagline">{profile.tagline}</p>
+            <div className="education-card"><span className="eyebrow">CURRENTLY AT</span><h3>{profile.education.school}</h3><div><span>{profile.education.degree}</span><span>{profile.education.detail}</span></div></div>
+            <div className="language-card">
+              <span className="eyebrow">THE LANGUAGES I THINK IN</span>
+              <div className="language-bar" aria-hidden="true">{languages.map(language => <span key={language.name} style={{ width: language.pct + '%', background: language.color }} />)}</div>
+              <div className="language-legend">{languages.map(language => <span key={language.name}><i style={{ background: language.color }} />{language.name} <b>{language.pct}%</b></span>)}</div>
+            </div>
+          </Reveal>
+        </div>
+        <div className="journey">
+          <div className="journey-label"><span className="eyebrow">THE JOURNEY SO FAR</span><Icon name="right" size={22} /></div>
+          <div className="timeline">{timeline.map((item, index) => <Reveal as="article" key={item.when} delay={index * 100}><span className="timeline-year">{item.when}</span><h3>{item.title}</h3><p>{item.text}</p></Reveal>)}</div>
+        </div>
+      </section>
+      <Reveal className="contact-reveal"><Contact /></Reveal>
     </main><footer className="site-footer section-wrap"><a className="footer-name" href="#top">Prakash Palsaniya<span>.</span></a><span>© {year} · Thoughtfully engineered.</span><a className="back-top" href="#top">Back to top <Icon name="down" size={15} /></a></footer>
     {selectedProject && <ProjectDialog project={selectedProject} onClose={() => setSelectedProject(null)} />}
   </>
+}
+
+export default function App(props) {
+  return <MotionProvider><Portfolio {...props} /></MotionProvider>
 }
